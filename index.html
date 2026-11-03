@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MedFi – Health Loan System on Botchain</title>
+<style>
+  :root {
+    --blue:       #1d6fa4;
+    --blue-light: #3b9fd4;
+    --blue-bg:    #f0f7ff;
+    --navy:       #0d2b45;
+    --teal:       #0f8a75;
+    --teal-light: #13b09a;
+    --red:        #dc2626;
+    --gold:       #d97706;
+    --gray:       #64748b;
+    --border:     #bfdbfe;
+    --white:      #ffffff;
+    --card:       #f8fbff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--blue-bg); color: var(--navy); }
+
+  /* ── Header ── */
+  header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 1rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  header h1 { font-size: 1.4rem; letter-spacing: -0.5px; }
+  header h1 span { color: var(--blue-light); }
+  .chain-tag {
+    background: var(--blue); color: var(--white);
+    padding: 3px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+    color: var(--white); text-align: center; padding: 3.5rem 1rem 3rem;
+  }
+  .hero h2 { font-size: 1.9rem; margin-bottom: 0.6rem; }
+  .hero p  { opacity: 0.85; max-width: 480px; margin: 0 auto 1.8rem; font-size: 0.95rem; line-height: 1.6; }
+  .hero-pills { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+  .pill { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+          padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; }
+
+  /* ── Stats bar ── */
+  .stats-bar { display: flex; background: var(--white); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .stat { flex: 1; min-width: 120px; text-align: center; padding: 1rem 0.5rem; border-right: 1px solid var(--border); }
+  .stat .v { font-size: 1.5rem; font-weight: 800; color: var(--blue); }
+  .stat .l { font-size: 0.7rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── Nav ── */
+  nav {
+    display: flex; gap: 0.5rem; padding: 0.85rem 2rem;
+    background: var(--white); border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  nav button {
+    background: none; border: 1px solid var(--border); padding: 0.4rem 1.1rem;
+    border-radius: 20px; cursor: pointer; font-size: 0.84rem; color: var(--gray); transition: all 0.18s;
+  }
+  nav button.active, nav button:hover { background: var(--blue); color: var(--white); border-color: var(--blue); }
+
+  /* ── Layout ── */
+  .container { max-width: 980px; margin: 2rem auto; padding: 0 1rem; }
+  .section   { display: none; }
+  .section.active { display: block; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--white); border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+  .card h3 { color: var(--blue); margin-bottom: 1rem; font-size: 1.05rem; }
+
+  /* ── Forms ── */
+  .form-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+  .form-row label {
+    display: flex; flex-direction: column; gap: 5px;
+    flex: 1; min-width: 160px; font-size: 0.82rem; color: var(--gray);
+  }
+  .form-row input, .form-row select {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.55rem 0.8rem; font-size: 0.9rem; outline: none; transition: border 0.18s;
+  }
+  .form-row input:focus, .form-row select:focus { border-color: var(--blue); }
+
+  /* ── Buttons ── */
+  .btn          { background: var(--blue);  color: var(--white); border: none; padding: 0.6rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: background 0.18s; }
+  .btn:hover    { background: var(--blue-light); }
+  .btn-teal     { background: var(--teal); }
+  .btn-teal:hover { background: var(--teal-light); }
+  .btn-outline  { background: none; border: 1.5px solid var(--blue); color: var(--blue); }
+  .btn-sm       { padding: 0.4rem 1rem; font-size: 0.82rem; }
+
+  /* ── Badges ── */
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; }
+  .b-active   { background: #dcfce7; color: #15803d; }
+  .b-pending  { background: #fef9c3; color: #a16207; }
+  .b-repaid   { background: #dbeafe; color: var(--blue); }
+  .b-default  { background: #fee2e2; color: var(--red); }
+
+  /* ── Dashboard top row ── */
+  .dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .dash-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; text-align: center; }
+  .dash-card .dv { font-size: 1.6rem; font-weight: 800; color: var(--blue); }
+  .dash-card .dl { font-size: 0.75rem; color: var(--gray); margin-top: 3px; }
+  .dash-card.teal .dv { color: var(--teal); }
+  .dash-card.gold  .dv { color: var(--gold); }
+
+  /* ── Streak bar ── */
+  .streak-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 0.5rem 0; }
+  .week-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--gray); }
+  .week-dot.done { background: var(--teal); color: var(--white); }
+
+  /* ── Loan cards ── */
+  .loan-card { border: 1px solid var(--border); border-radius: 11px; padding: 1.1rem; background: var(--card); margin-bottom: 0.9rem; }
+  .loan-card h4 { font-size: 0.95rem; margin-bottom: 0.35rem; }
+  .loan-card p  { font-size: 0.8rem; color: var(--gray); margin-bottom: 0.2rem; }
+  .loan-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+
+  /* ── Progress ── */
+  .progress-bar { background: #e2e8f0; border-radius: 10px; height: 8px; margin: 6px 0; }
+  .progress-fill { height: 100%; border-radius: 10px; background: var(--teal); transition: width 0.4s; }
+
+  /* ── Provider grid ── */
+  .provider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+  .provider-card { border: 1px solid var(--border); border-radius: 11px; padding: 1.1rem; background: var(--card); }
+  .provider-card .icon { font-size: 2rem; margin-bottom: 0.4rem; }
+  .provider-card h4 { font-size: 0.95rem; margin-bottom: 0.25rem; }
+  .provider-card p  { font-size: 0.78rem; color: var(--gray); margin-bottom: 0.6rem; }
+
+  /* ── Info box ── */
+  .info-box { background: #eff6ff; border-left: 4px solid var(--blue); border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.84rem; margin-bottom: 1rem; color: var(--navy); }
+
+  /* ── How it works steps ── */
+  .steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .step { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; text-align: center; }
+  .step .num { width: 36px; height: 36px; background: var(--blue); color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; margin: 0 auto 0.7rem; }
+  .step h4 { font-size: 0.9rem; margin-bottom: 0.4rem; }
+  .step p  { font-size: 0.78rem; color: var(--gray); line-height: 1.5; }
+
+  /* ── MFT token display ── */
+  .mft-pill { display: inline-flex; align-items: center; gap: 5px; background: #fef9c3; border: 1px solid #fde68a; padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; color: #92400e; }
+
+  footer { text-align: center; padding: 2rem; color: var(--gray); font-size: 0.78rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Med<span>Fi</span> 🏥</h1>
+  <span class="chain-tag">⛓ Botchain</span>
+</header>
+
+<div class="hero">
+  <h2>Healthcare Savings &amp; Micro-Loans</h2>
+  <p>Save small. Borrow when you need it. Pay your doctor directly — no bank, no middleman, all on Botchain.</p>
+  <div class="hero-pills">
+    <span class="pill">💊 Health Loans</span>
+    <span class="pill">🏦 Community Pool</span>
+    <span class="pill">🎖 MFT Rewards</span>
+    <span class="pill">🤝 Guarantor System</span>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="v">312</div><div class="l">Members</div></div>
+  <div class="stat"><div class="v">98 BOT</div><div class="l">Pool Balance</div></div>
+  <div class="stat"><div class="v">67</div><div class="l">Active Loans</div></div>
+  <div class="stat"><div class="v">94%</div><div class="l">Repayment Rate</div></div>
+  <div class="stat"><div class="v">12</div><div class="l">Partner Clinics</div></div>
+</div>
+
+<nav>
+  <button class="active" onclick="show('home', this)">🏠 Home</button>
+  <button onclick="show('savings', this)">💰 Save</button>
+  <button onclick="show('loans', this)">🏥 Loans</button>
+  <button onclick="show('providers', this)">🏨 Providers</button>
+  <button onclick="show('profile', this)">👤 Profile</button>
+</nav>
+
+<div class="container">
+
+  <!-- ── HOME ────────────────────────────────────────────────────── -->
+  <div id="home" class="section active">
+    <div class="info-box">
+      👋 Welcome to MedFi. Save BOT regularly, build your streak, and unlock low-cost health loans backed by your community on Botchain.
+    </div>
+
+    <h3 style="margin-bottom:1rem;color:var(--navy)">How MedFi Works</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h4>Register</h4>
+        <p>Create your MedFi member profile on Botchain with your wallet.</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h4>Save</h4>
+        <p>Deposit BOT into the shared pool. Build a savings streak every week.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h4>Borrow</h4>
+        <p>Request a health loan (up to 3× savings). A guarantor stakes half as security.</p>
+      </div>
+      <div class="step">
+        <div class="num">4</div>
+        <h4>Pay Care</h4>
+        <p>Pay a verified clinic or pharmacy directly from MedFi — tracked on-chain.</p>
+      </div>
+      <div class="step">
+        <div class="num">5</div>
+        <h4>Earn MFT</h4>
+        <p>Get MedFi Tokens for every deposit and on-time repayment.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+      <h3>📖 Recent Activity</h3>
+      <div style="display:flex;flex-direction:column;gap:0.6rem">
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.6rem;background:var(--card);border-radius:8px">
+          <span>💊 Loan #67 repaid by Amina O.</span><span style="color:var(--teal);font-weight:600">+20 MFT</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.6rem;background:var(--card);border-radius:8px">
+          <span>💰 Juma K. deposited 2 BOT</span><span style="color:var(--gray)">2 min ago</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.6rem;background:var(--card);border-radius:8px">
+          <span>🏥 Payment to Lagos Clinic — 5 BOT</span><span style="color:var(--gray)">14 min ago</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.6rem;background:var(--card);border-radius:8px">
+          <span>🤝 Loan #68 guarantor staked by Fatima M.</span><span style="color:var(--blue);font-weight:600">3 BOT locked</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SAVINGS ──────────────────────────────────────────────────── -->
+  <div id="savings" class="section">
+    <div class="dash-grid">
+      <div class="dash-card teal">
+        <div class="dv" id="savAmt">8.50 BOT</div>
+        <div class="dl">My Total Saved</div>
+      </div>
+      <div class="dash-card gold">
+        <div class="dv" id="mftBal">150 MFT</div>
+        <div class="dl">MFT Balance</div>
+      </div>
+      <div class="dash-card">
+        <div class="dv" id="streakVal">5 weeks</div>
+        <div class="dl">Savings Streak</div>
+      </div>
+      <div class="dash-card">
+        <div class="dv" id="maxLoan">25.5 BOT</div>
+        <div class="dl">Max Loan (3× savings)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>💰 Deposit to Pool</h3>
+      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem">Every deposit earns 10 MFT. A 4+ week streak earns a 5 MFT bonus. Your savings determine your max loan.</p>
+      <div class="form-row">
+        <label>Amount (BOT) <input id="depAmt" type="number" placeholder="1" min="0.01" step="0.01" oninput="updateMFTPreview()"/></label>
+      </div>
+      <div id="mftPreview" style="font-size:0.83rem;color:var(--teal);margin-bottom:0.75rem"></div>
+      <button class="btn btn-teal" onclick="deposit()">Deposit BOT</button>
+    </div>
+
+    <div class="card">
+      <h3>📅 Weekly Streak</h3>
+      <p style="font-size:0.83rem;color:var(--gray);margin-bottom:0.8rem">Keep depositing each week to maintain your streak and unlock better loan limits.</p>
+      <div class="streak-row" id="streakDots"></div>
+    </div>
+
+    <div class="card">
+      <h3>📤 Withdraw Savings</h3>
+      <div class="info-box" style="margin-bottom:0.75rem">You must have no active loans to withdraw.</div>
+      <div class="form-row">
+        <label>Amount (BOT) <input id="wdAmt" type="number" placeholder="1" /></label>
+      </div>
+      <button class="btn btn-outline" onclick="withdraw()">Withdraw</button>
+    </div>
+  </div>
+
+  <!-- ── LOANS ────────────────────────────────────────────────────── -->
+  <div id="loans" class="section">
+
+    <div class="card">
+      <h3>🏥 Request a Health Loan</h3>
+      <div class="info-box">
+        Max loan is <strong>3× your savings</strong>. You need a registered MedFi member as guarantor — they lock half the loan amount as security. Loan fee: <strong>2% flat</strong>.
+      </div>
+      <div class="form-row">
+        <label>Amount (BOT) <input id="lAmt" type="number" placeholder="5" oninput="calcLoan()"/></label>
+        <label>Duration
+          <select id="lDur">
+            <option value="7">7 days</option>
+            <option value="14">14 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="60">60 days</option>
+            <option value="90">90 days</option>
+            <option value="180">180 days</option>
+          </select>
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Guarantor Wallet <input id="lGuarantor" placeholder="0x… (must be a MedFi member)" /></label>
+      </div>
+      <div id="loanCalc" style="font-size:0.83rem;color:var(--gray);margin-bottom:0.75rem"></div>
+      <button class="btn" onclick="requestLoan()">Request Loan on Botchain</button>
+    </div>
+
+    <div class="card">
+      <h3>✅ Stake as Guarantor</h3>
+      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem">If someone nominated you as their guarantor, enter the loan ID and stake your share to activate the loan.</p>
+      <div class="form-row">
+        <label>Loan ID <input id="gLoanId" type="number" placeholder="68" /></label>
+        <label>Stake Amount (BOT) <input id="gStake" type="number" placeholder="2.5" /></label>
+      </div>
+      <button class="btn btn-teal" onclick="stakeAsGuarantor()">Stake &amp; Activate Loan</button>
+    </div>
+
+    <div class="card">
+      <h3>📋 My Loans</h3>
+
+      <div class="loan-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+          <span class="badge b-active">Active</span>
+          <span class="mft-pill">🎖 +20 MFT on repayment</span>
+        </div>
+        <h4>Loan #65 — 6 BOT</h4>
+        <p>🤝 Guarantor: Fatima M. (3 BOT staked)</p>
+        <p>📅 Due: Dec 1, 2026 &nbsp;|&nbsp; Total owed: 6.12 BOT (2% fee)</p>
+        <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
+        <p style="font-size:0.72rem;color:var(--gray)">12 of 30 days elapsed</p>
+        <div class="loan-actions">
+          <button class="btn btn-teal btn-sm" onclick="repayLoan(65)">Repay 6.12 BOT</button>
+        </div>
+      </div>
+
+      <div class="loan-card">
+        <span class="badge b-repaid">Repaid</span>
+        <h4 style="margin-top:0.4rem">Loan #52 — 3 BOT</h4>
+        <p>📅 Repaid Oct 20, 2026 · On time ✓</p>
+        <p>🎖 Earned 20 MFT</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── PROVIDERS ─────────────────────────────────────────────────── -->
+  <div id="providers" class="section">
+    <div class="card">
+      <h3>🏨 Verified Healthcare Providers</h3>
+      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1.2rem">Pay any of these partners directly from MedFi. All payments are recorded on Botchain.</p>
+
+      <div class="provider-grid">
+        <div class="provider-card">
+          <div class="icon">🏥</div>
+          <h4>Lagos Community Clinic</h4>
+          <p>General outpatient, lab tests, minor surgery</p>
+          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Lagos, Nigeria</p>
+          <button class="btn btn-sm" onclick="payProvider('Lagos Community Clinic')">Pay Directly</button>
+        </div>
+        <div class="provider-card">
+          <div class="icon">💊</div>
+          <h4>AfriPharm Pharmacy</h4>
+          <p>Prescription &amp; OTC medicines, 10% MFT discount</p>
+          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Ibadan, Nigeria</p>
+          <button class="btn btn-sm" onclick="payProvider('AfriPharm')">Pay Directly</button>
+        </div>
+        <div class="provider-card">
+          <div class="icon">🏨</div>
+          <h4>Nairobi MedCentre</h4>
+          <p>Consultations, X-ray, maternal health</p>
+          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Nairobi, Kenya</p>
+          <button class="btn btn-sm" onclick="payProvider('Nairobi MedCentre')">Pay Directly</button>
+        </div>
+        <div class="provider-card">
+          <div class="icon">🦷</div>
+          <h4>BrightSmile Dental</h4>
+          <p>Dental care, extractions, fillings</p>
+          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Accra, Ghana</p>
+          <button class="btn btn-sm" onclick="payProvider('BrightSmile')">Pay Directly</button>
+        </div>
+        <div class="provider-card">
+          <div class="icon">👁</div>
+          <h4>VisionPlus Eye Clinic</h4>
+          <p>Eye tests, glasses prescriptions, surgery referrals</p>
+          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Abuja, Nigeria</p>
+          <button class="btn btn-sm" onclick="payProvider('VisionPlus')">Pay Directly</button>
+        </div>
+        <div class="provider-card">
+          <div class="icon">🤰</div>
+          <h4>MamaCare Maternity</h4>
+          <p>Antenatal, delivery, postnatal care</p>
+          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Kampala, Uganda</p>
+          <button class="btn btn-sm" onclick="payProvider('MamaCare')">Pay Directly</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>💳 Direct Payment</h3>
+      <div class="form-row">
+        <label>Provider Name / Address <input id="pvName" placeholder="Select from above or enter 0x…" /></label>
+        <label>Amount (BOT) <input id="pvAmt" type="number" placeholder="5" /></label>
+      </div>
+      <button class="btn btn-teal" onclick="directPay()">Pay Provider on Botchain</button>
+    </div>
+  </div>
+
+  <!-- ── PROFILE ───────────────────────────────────────────────────── -->
+  <div id="profile" class="section">
+    <div class="card">
+      <h3>👤 My MedFi Profile</h3>
+
+      <div style="font-size:0.85rem;color:var(--gray);margin-bottom:1.2rem">
+        Connected wallet: <strong>0x1a2b…3c4d</strong>
+        &nbsp;<span class="badge b-active">Registered</span>
+      </div>
+
+      <div class="form-row">
+        <label>Name <input placeholder="Your name" /></label>
+      </div>
+      <button class="btn" style="margin-bottom:1.5rem" onclick="register()">Register on Botchain</button>
+
+      <hr style="border-color:var(--border);margin-bottom:1.5rem"/>
+
+      <div class="dash-grid">
+        <div class="dash-card teal">
+          <div class="dv">8.5 BOT</div><div class="dl">Total Saved</div>
+        </div>
+        <div class="dash-card gold">
+          <div class="dv">150 MFT</div><div class="dl">Health Tokens</div>
+        </div>
+        <div class="dash-card">
+          <div class="dv">5</div><div class="dl">Week Streak</div>
+        </div>
+        <div class="dash-card">
+          <div class="dv">2</div><div class="dl">Loans Taken</div>
+        </div>
+      </div>
+
+      <hr style="border-color:var(--border);margin:1.5rem 0"/>
+
+      <h3 style="margin-bottom:0.75rem">🎖 MFT – MedFi Token</h3>
+      <p style="font-size:0.85rem;color:var(--gray);line-height:1.6;margin-bottom:1rem">
+        MFT is your on-chain health reputation token. Earn it by saving and repaying loans on time.
+        Use MFT to pay at partner clinics (10% discount) or swap for BOT on the Botchain DEX.
+      </p>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="redeemMFT()">Redeem MFT at Provider</button>
+        <button class="btn btn-outline btn-sm" onclick="alert('MFT swap coming in v2!')">Swap MFT → BOT</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end .container -->
+
+<footer>
+  MedFi is deployed on Botchain · Contract: 0xMedFi… · Non-custodial · Open source<br/>
+  MFT is a utility token — not financial advice
+</footer>
+
+<script>
+  // ── Navigation
+  function show(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // ── Savings streak dots
+  (function buildStreak() {
+    const streak = 5, total = 8;
+    const container = document.getElementById('streakDots');
+    if (!container) return;
+    for (let i = 0; i < total; i++) {
+      const d = document.createElement('div');
+      d.className = 'week-dot' + (i < streak ? ' done' : '');
+      d.textContent = 'W' + (i + 1);
+      container.appendChild(d);
+    }
+  })();
+
+  // ── MFT preview on deposit input
+  function updateMFTPreview() {
+    const v = parseFloat(document.getElementById('depAmt').value) || 0;
+    const mft = v > 0 ? '10 MFT' + (true ? ' + 5 streak bonus = 15 MFT' : '') : '';
+    document.getElementById('mftPreview').textContent = v > 0 ? '🎖 You will earn: ' + mft : '';
+  }
+
+  // ── Loan calculator
+  function calcLoan() {
+    const amt = parseFloat(document.getElementById('lAmt').value) || 0;
+    if (!amt) { document.getElementById('loanCalc').textContent = ''; return; }
+    const fee = (amt * 0.02).toFixed(4);
+    const total = (amt + parseFloat(fee)).toFixed(4);
+    const gStake = (amt / 2).toFixed(4);
+    document.getElementById('loanCalc').textContent =
+      `Total to repay: ${total} BOT (${fee} BOT fee)  ·  Guarantor must stake: ${gStake} BOT`;
+  }
+
+  // ── Actions (simulated — wire to Botchain in production)
+  function deposit()       { const a = document.getElementById('depAmt').value; if(!a){alert('Enter amount');return;} alert(`✅ Depositing ${a} BOT to MedFi pool on Botchain...\ncalling deposit() on MedFi contract.`); }
+  function withdraw()      { const a = document.getElementById('wdAmt').value;  if(!a){alert('Enter amount');return;} alert(`📤 Withdrawing ${a} BOT from MedFi...`); }
+  function requestLoan()   { const a = document.getElementById('lAmt').value;   if(!a){alert('Enter amount');return;} alert(`🏥 Loan request for ${a} BOT submitted to Botchain!\nYour guarantor will be notified to stake.`); }
+  function stakeAsGuarantor() { const id = document.getElementById('gLoanId').value; alert(`🤝 Staking as guarantor for Loan #${id} on Botchain...`); }
+  function repayLoan(id)   { alert(`💊 Repaying Loan #${id} on Botchain...\ncalling repayLoan(${id}).`); }
+  function register()      { alert('📝 Registering on MedFi (Botchain)...\ncalling register() on contract.'); }
+  function redeemMFT()     { alert('🎖 Redeeming MFT at partner provider...'); }
+  function payProvider(n)  { document.getElementById('pvName').value = n; document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById('providers').classList.add('active'); }
+  function directPay()     { const n=document.getElementById('pvName').value; const a=document.getElementById('pvAmt').value; if(!n||!a){alert('Fill provider and amount');return;} alert(`💳 Paying ${a} BOT to ${n} via MedFi on Botchain!`); }
+</script>
+</body>
+</html>
