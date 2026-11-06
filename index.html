@@ -148,32 +148,47 @@
   .mft-pill { display: inline-flex; align-items: center; gap: 5px; background: #fef9c3; border: 1px solid #fde68a; padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; color: #92400e; }
 
   footer { text-align: center; padding: 2rem; color: var(--gray); font-size: 0.78rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+  .hdr-right { display: flex; align-items: center; gap: 0.75rem; }
+  .wallet-btn { background: var(--white); color: var(--navy); border: none; padding: 0.45rem 1rem; border-radius: 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .btn:disabled, .wallet-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .btn-red { background: var(--red); }
+  .muted { font-size: 0.85rem; color: var(--gray); }
+  .empty { text-align: center; padding: 1.2rem; color: var(--gray); font-size: 0.85rem; }
+  .warn-box { background: #fef9c3; border-left: 4px solid var(--gold); border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.84rem; margin-bottom: 1rem; color: #713f12; }
+  .act-row { display:flex; justify-content:space-between; gap:0.75rem; font-size:0.85rem; padding:0.6rem; background:var(--card); border-radius:8px; }
+  #toast { position: fixed; bottom: 20px; right: 20px; max-width: 340px; background: var(--navy); color: white; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; opacity: 0; transform: translateY(8px); transition: all 0.2s; pointer-events: none; z-index: 99; }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.err { background: var(--red); }
+  #toast.ok { background: var(--teal); }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Med<span>Fi</span> 🏥</h1>
-  <span class="chain-tag">⛓ Botchain</span>
+  <div class="hdr-right">
+    <span class="chain-tag">⛓ BOT Chain · 677</span>
+    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
+  </div>
 </header>
 
 <div class="hero">
   <h2>Healthcare Savings &amp; Micro-Loans</h2>
-  <p>Save small. Borrow when you need it. Pay your doctor directly — no bank, no middleman, all on Botchain.</p>
+  <p>Save small. Borrow when you need it. Pay verified clinics directly from your wallet, all on BOT Chain.</p>
   <div class="hero-pills">
     <span class="pill">💊 Health Loans</span>
     <span class="pill">🏦 Community Pool</span>
-    <span class="pill">🎖 MFT Rewards</span>
+    <span class="pill">🎖 MFT Points</span>
     <span class="pill">🤝 Guarantor System</span>
   </div>
 </div>
 
 <div class="stats-bar">
-  <div class="stat"><div class="v">312</div><div class="l">Members</div></div>
-  <div class="stat"><div class="v">98 BOT</div><div class="l">Pool Balance</div></div>
-  <div class="stat"><div class="v">67</div><div class="l">Active Loans</div></div>
-  <div class="stat"><div class="v">94%</div><div class="l">Repayment Rate</div></div>
-  <div class="stat"><div class="v">12</div><div class="l">Partner Clinics</div></div>
+  <div class="stat"><div class="v" id="stPool">–</div><div class="l">Pool Balance</div></div>
+  <div class="stat"><div class="v" id="stLoans">–</div><div class="l">Loans Requested</div></div>
+  <div class="stat"><div class="v" id="stActive">–</div><div class="l">Active Loans</div></div>
+  <div class="stat"><div class="v" id="stRepay">–</div><div class="l">Repayment Rate</div></div>
+  <div class="stat"><div class="v" id="stProviders">–</div><div class="l">Verified Providers</div></div>
 </div>
 
 <nav>
@@ -188,102 +203,57 @@
 
   <!-- ── HOME ────────────────────────────────────────────────────── -->
   <div id="home" class="section active">
-    <div class="info-box">
-      👋 Welcome to MedFi. Save BOT regularly, build your streak, and unlock low-cost health loans backed by your community on Botchain.
+    <div class="info-box" id="welcomeBox">
+      👋 Welcome to MedFi. Connect your wallet and register on the Profile tab to start saving.
     </div>
 
     <h3 style="margin-bottom:1rem;color:var(--navy)">How MedFi Works</h3>
     <div class="steps">
-      <div class="step">
-        <div class="num">1</div>
-        <h4>Register</h4>
-        <p>Create your MedFi member profile on Botchain with your wallet.</p>
-      </div>
-      <div class="step">
-        <div class="num">2</div>
-        <h4>Save</h4>
-        <p>Deposit BOT into the shared pool. Build a savings streak every week.</p>
-      </div>
-      <div class="step">
-        <div class="num">3</div>
-        <h4>Borrow</h4>
-        <p>Request a health loan (up to 3× savings). A guarantor stakes half as security.</p>
-      </div>
-      <div class="step">
-        <div class="num">4</div>
-        <h4>Pay Care</h4>
-        <p>Pay a verified clinic or pharmacy directly from MedFi — tracked on-chain.</p>
-      </div>
-      <div class="step">
-        <div class="num">5</div>
-        <h4>Earn MFT</h4>
-        <p>Get MedFi Tokens for every deposit and on-time repayment.</p>
-      </div>
+      <div class="step"><div class="num">1</div><h4>Register</h4><p>Create your MedFi member profile on BOT Chain with your wallet.</p></div>
+      <div class="step"><div class="num">2</div><h4>Save</h4><p>Deposit BOT into the shared pool. Deposit in consecutive weeks to build a streak.</p></div>
+      <div class="step"><div class="num">3</div><h4>Borrow</h4><p>Request a 30-day health loan (up to 3× savings). A member guarantor stakes half to activate it.</p></div>
+      <div class="step"><div class="num">4</div><h4>Pay Care</h4><p>Pay a verified clinic or pharmacy directly from MedFi, recorded on-chain.</p></div>
+      <div class="step"><div class="num">5</div><h4>Earn MFT</h4><p>Collect MedFi points for every deposit and repayment.</p></div>
     </div>
 
     <div class="card" style="margin-top:1.5rem">
       <h3>📖 Recent Activity</h3>
-      <div style="display:flex;flex-direction:column;gap:0.6rem">
-        <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.6rem;background:var(--card);border-radius:8px">
-          <span>💊 Loan #67 repaid by Amina O.</span><span style="color:var(--teal);font-weight:600">+20 MFT</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.6rem;background:var(--card);border-radius:8px">
-          <span>💰 Juma K. deposited 2 BOT</span><span style="color:var(--gray)">2 min ago</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.6rem;background:var(--card);border-radius:8px">
-          <span>🏥 Payment to Lagos Clinic — 5 BOT</span><span style="color:var(--gray)">14 min ago</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.6rem;background:var(--card);border-radius:8px">
-          <span>🤝 Loan #68 guarantor staked by Fatima M.</span><span style="color:var(--blue);font-weight:600">3 BOT locked</span>
-        </div>
-      </div>
+      <div style="display:flex;flex-direction:column;gap:0.6rem" id="activity"><div class="empty">Loading…</div></div>
     </div>
   </div>
 
   <!-- ── SAVINGS ──────────────────────────────────────────────────── -->
   <div id="savings" class="section">
     <div class="dash-grid">
-      <div class="dash-card teal">
-        <div class="dv" id="savAmt">8.50 BOT</div>
-        <div class="dl">My Total Saved</div>
-      </div>
-      <div class="dash-card gold">
-        <div class="dv" id="mftBal">150 MFT</div>
-        <div class="dl">MFT Balance</div>
-      </div>
-      <div class="dash-card">
-        <div class="dv" id="streakVal">5 weeks</div>
-        <div class="dl">Savings Streak</div>
-      </div>
-      <div class="dash-card">
-        <div class="dv" id="maxLoan">25.5 BOT</div>
-        <div class="dl">Max Loan (3× savings)</div>
-      </div>
+      <div class="dash-card teal"><div class="dv" id="savAmt">–</div><div class="dl">My Total Saved</div></div>
+      <div class="dash-card gold"><div class="dv" id="mftBal">–</div><div class="dl">MFT Points</div></div>
+      <div class="dash-card"><div class="dv" id="streakVal">–</div><div class="dl">Savings Streak</div></div>
+      <div class="dash-card"><div class="dv" id="maxLoan">–</div><div class="dl">Max Loan (3× savings)</div></div>
     </div>
 
     <div class="card">
       <h3>💰 Deposit to Pool</h3>
-      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem">Every deposit earns 10 MFT. A 4+ week streak earns a 5 MFT bonus. Your savings determine your max loan.</p>
+      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem">Every deposit earns 10 MFT. From a 5-week streak onward, each deposit earns a 5 MFT bonus. Your savings set your max loan.</p>
       <div class="form-row">
-        <label>Amount (BOT) <input id="depAmt" type="number" placeholder="1" min="0.01" step="0.01" oninput="updateMFTPreview()"/></label>
+        <label>Amount (BOT) <input id="depAmt" type="number" placeholder="1" min="0" step="any" oninput="updateMFTPreview()"/></label>
       </div>
       <div id="mftPreview" style="font-size:0.83rem;color:var(--teal);margin-bottom:0.75rem"></div>
-      <button class="btn btn-teal" onclick="deposit()">Deposit BOT</button>
+      <button class="btn btn-teal" id="depBtn" onclick="deposit()">Deposit BOT</button>
     </div>
 
     <div class="card">
       <h3>📅 Weekly Streak</h3>
-      <p style="font-size:0.83rem;color:var(--gray);margin-bottom:0.8rem">Keep depositing each week to maintain your streak and unlock better loan limits.</p>
+      <p style="font-size:0.83rem;color:var(--gray);margin-bottom:0.8rem">Deposit at least once each calendar week to keep your streak.</p>
       <div class="streak-row" id="streakDots"></div>
     </div>
 
     <div class="card">
       <h3>📤 Withdraw Savings</h3>
-      <div class="info-box" style="margin-bottom:0.75rem">You must have no active loans to withdraw.</div>
+      <div class="info-box" style="margin-bottom:0.75rem">You must have no active loans to withdraw. Withdrawals can fail while pool funds are lent out.</div>
       <div class="form-row">
-        <label>Amount (BOT) <input id="wdAmt" type="number" placeholder="1" /></label>
+        <label>Amount (BOT) <input id="wdAmt" type="number" placeholder="1" min="0" step="any"/></label>
       </div>
-      <button class="btn btn-outline" onclick="withdraw()">Withdraw</button>
+      <button class="btn btn-outline" id="wdBtn" onclick="withdraw()">Withdraw</button>
     </div>
   </div>
 
@@ -293,63 +263,30 @@
     <div class="card">
       <h3>🏥 Request a Health Loan</h3>
       <div class="info-box">
-        Max loan is <strong>3× your savings</strong>. You need a registered MedFi member as guarantor — they lock half the loan amount as security. Loan fee: <strong>2% flat</strong>.
+        Max loan is <strong>3× your savings</strong>. A registered MedFi member must be your guarantor and stake half the loan to activate it. Fee: <strong>2% flat</strong>. Term: <strong>30 days</strong> from activation.
       </div>
       <div class="form-row">
-        <label>Amount (BOT) <input id="lAmt" type="number" placeholder="5" oninput="calcLoan()"/></label>
-        <label>Duration
-          <select id="lDur">
-            <option value="7">7 days</option>
-            <option value="14">14 days</option>
-            <option value="30" selected>30 days</option>
-            <option value="60">60 days</option>
-            <option value="90">90 days</option>
-            <option value="180">180 days</option>
-          </select>
-        </label>
-      </div>
-      <div class="form-row">
+        <label>Amount (BOT) <input id="lAmt" type="number" placeholder="5" min="0" step="any" oninput="calcLoan()"/></label>
         <label>Guarantor Wallet <input id="lGuarantor" placeholder="0x… (must be a MedFi member)" /></label>
       </div>
       <div id="loanCalc" style="font-size:0.83rem;color:var(--gray);margin-bottom:0.75rem"></div>
-      <button class="btn" onclick="requestLoan()">Request Loan on Botchain</button>
+      <button class="btn" id="loanBtn" onclick="requestLoan()">Request Loan on BOT Chain</button>
     </div>
 
     <div class="card">
-      <h3>✅ Stake as Guarantor</h3>
-      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem">If someone nominated you as their guarantor, enter the loan ID and stake your share to activate the loan.</p>
-      <div class="form-row">
-        <label>Loan ID <input id="gLoanId" type="number" placeholder="68" /></label>
-        <label>Stake Amount (BOT) <input id="gStake" type="number" placeholder="2.5" /></label>
-      </div>
-      <button class="btn btn-teal" onclick="stakeAsGuarantor()">Stake &amp; Activate Loan</button>
+      <h3>✅ Loans Waiting for You as Guarantor</h3>
+      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem">Staking sends half the loan amount to the pool and disburses the loan to the borrower. You get your stake back when they repay. If they default, you lose it.</p>
+      <div id="guarantorList"><div class="empty">Connect your wallet to see requests.</div></div>
     </div>
 
     <div class="card">
       <h3>📋 My Loans</h3>
+      <div id="myLoans"><div class="empty">Connect your wallet to see your loans.</div></div>
+    </div>
 
-      <div class="loan-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
-          <span class="badge b-active">Active</span>
-          <span class="mft-pill">🎖 +20 MFT on repayment</span>
-        </div>
-        <h4>Loan #65 — 6 BOT</h4>
-        <p>🤝 Guarantor: Fatima M. (3 BOT staked)</p>
-        <p>📅 Due: Dec 1, 2026 &nbsp;|&nbsp; Total owed: 6.12 BOT (2% fee)</p>
-        <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
-        <p style="font-size:0.72rem;color:var(--gray)">12 of 30 days elapsed</p>
-        <div class="loan-actions">
-          <button class="btn btn-teal btn-sm" onclick="repayLoan(65)">Repay 6.12 BOT</button>
-        </div>
-      </div>
-
-      <div class="loan-card">
-        <span class="badge b-repaid">Repaid</span>
-        <h4 style="margin-top:0.4rem">Loan #52 — 3 BOT</h4>
-        <p>📅 Repaid Oct 20, 2026 · On time ✓</p>
-        <p>🎖 Earned 20 MFT</p>
-      </div>
-
+    <div class="card" id="ownerLoansCard" style="display:none">
+      <h3>🛠 Overdue Loans (Owner)</h3>
+      <div id="overdueList"></div>
     </div>
   </div>
 
@@ -357,61 +294,31 @@
   <div id="providers" class="section">
     <div class="card">
       <h3>🏨 Verified Healthcare Providers</h3>
-      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1.2rem">Pay any of these partners directly from MedFi. All payments are recorded on Botchain.</p>
-
-      <div class="provider-grid">
-        <div class="provider-card">
-          <div class="icon">🏥</div>
-          <h4>Lagos Community Clinic</h4>
-          <p>General outpatient, lab tests, minor surgery</p>
-          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Lagos, Nigeria</p>
-          <button class="btn btn-sm" onclick="payProvider('Lagos Community Clinic')">Pay Directly</button>
-        </div>
-        <div class="provider-card">
-          <div class="icon">💊</div>
-          <h4>AfriPharm Pharmacy</h4>
-          <p>Prescription &amp; OTC medicines, 10% MFT discount</p>
-          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Ibadan, Nigeria</p>
-          <button class="btn btn-sm" onclick="payProvider('AfriPharm')">Pay Directly</button>
-        </div>
-        <div class="provider-card">
-          <div class="icon">🏨</div>
-          <h4>Nairobi MedCentre</h4>
-          <p>Consultations, X-ray, maternal health</p>
-          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Nairobi, Kenya</p>
-          <button class="btn btn-sm" onclick="payProvider('Nairobi MedCentre')">Pay Directly</button>
-        </div>
-        <div class="provider-card">
-          <div class="icon">🦷</div>
-          <h4>BrightSmile Dental</h4>
-          <p>Dental care, extractions, fillings</p>
-          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Accra, Ghana</p>
-          <button class="btn btn-sm" onclick="payProvider('BrightSmile')">Pay Directly</button>
-        </div>
-        <div class="provider-card">
-          <div class="icon">👁</div>
-          <h4>VisionPlus Eye Clinic</h4>
-          <p>Eye tests, glasses prescriptions, surgery referrals</p>
-          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Abuja, Nigeria</p>
-          <button class="btn btn-sm" onclick="payProvider('VisionPlus')">Pay Directly</button>
-        </div>
-        <div class="provider-card">
-          <div class="icon">🤰</div>
-          <h4>MamaCare Maternity</h4>
-          <p>Antenatal, delivery, postnatal care</p>
-          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem">📍 Kampala, Uganda</p>
-          <button class="btn btn-sm" onclick="payProvider('MamaCare')">Pay Directly</button>
-        </div>
-      </div>
+      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1.2rem">Providers verified by the MedFi owner. Payments go straight to the provider's wallet and are recorded on BOT Chain.</p>
+      <div class="provider-grid" id="providerGrid"><div class="empty">Loading…</div></div>
     </div>
 
     <div class="card">
       <h3>💳 Direct Payment</h3>
       <div class="form-row">
-        <label>Provider Name / Address <input id="pvName" placeholder="Select from above or enter 0x…" /></label>
-        <label>Amount (BOT) <input id="pvAmt" type="number" placeholder="5" /></label>
+        <label>Provider
+          <select id="pvSelect"><option value="">Select a verified provider</option></select>
+        </label>
+        <label>Amount (BOT) <input id="pvAmt" type="number" placeholder="5" min="0" step="any"/></label>
       </div>
-      <button class="btn btn-teal" onclick="directPay()">Pay Provider on Botchain</button>
+      <button class="btn btn-teal" id="payBtn" onclick="directPay()">Pay Provider on BOT Chain</button>
+    </div>
+
+    <div class="card" id="ownerProvCard" style="display:none">
+      <h3>➕ Add Provider (Owner)</h3>
+      <div class="form-row">
+        <label>Provider Wallet <input id="apWallet" placeholder="0x…" /></label>
+        <label>Name <input id="apName" placeholder="Lagos Community Clinic" /></label>
+        <label>Category
+          <select id="apCat"><option>Clinic</option><option>Pharmacy</option><option>Hospital</option></select>
+        </label>
+      </div>
+      <button class="btn" id="apBtn" onclick="addProvider()">Add Provider</button>
     </div>
   </div>
 
@@ -421,103 +328,475 @@
       <h3>👤 My MedFi Profile</h3>
 
       <div style="font-size:0.85rem;color:var(--gray);margin-bottom:1.2rem">
-        Connected wallet: <strong>0x1a2b…3c4d</strong>
-        &nbsp;<span class="badge b-active">Registered</span>
+        Connected wallet: <strong id="pAddr">Not connected</strong>
+        &nbsp;<span class="badge" id="pBadge"></span>
       </div>
 
-      <div class="form-row">
-        <label>Name <input placeholder="Your name" /></label>
+      <div id="regForm">
+        <div class="form-row">
+          <label>Name <input id="rName" placeholder="Your name" /></label>
+        </div>
+        <p class="muted" style="margin-bottom:0.8rem">Registration is one-time and your name is public on-chain.</p>
+        <button class="btn" style="margin-bottom:1.5rem" id="regBtn" onclick="register()">Register on BOT Chain</button>
       </div>
-      <button class="btn" style="margin-bottom:1.5rem" onclick="register()">Register on Botchain</button>
 
       <hr style="border-color:var(--border);margin-bottom:1.5rem"/>
 
       <div class="dash-grid">
-        <div class="dash-card teal">
-          <div class="dv">8.5 BOT</div><div class="dl">Total Saved</div>
-        </div>
-        <div class="dash-card gold">
-          <div class="dv">150 MFT</div><div class="dl">Health Tokens</div>
-        </div>
-        <div class="dash-card">
-          <div class="dv">5</div><div class="dl">Week Streak</div>
-        </div>
-        <div class="dash-card">
-          <div class="dv">2</div><div class="dl">Loans Taken</div>
-        </div>
+        <div class="dash-card teal"><div class="dv" id="pSaved">–</div><div class="dl">Total Saved</div></div>
+        <div class="dash-card gold"><div class="dv" id="pMft">–</div><div class="dl">MFT Points</div></div>
+        <div class="dash-card"><div class="dv" id="pStreak">–</div><div class="dl">Week Streak</div></div>
+        <div class="dash-card"><div class="dv" id="pLoans">–</div><div class="dl">Loans Taken</div></div>
       </div>
 
       <hr style="border-color:var(--border);margin:1.5rem 0"/>
 
-      <h3 style="margin-bottom:0.75rem">🎖 MFT – MedFi Token</h3>
+      <h3 style="margin-bottom:0.75rem">🎖 MFT – MedFi Points</h3>
       <p style="font-size:0.85rem;color:var(--gray);line-height:1.6;margin-bottom:1rem">
-        MFT is your on-chain health reputation token. Earn it by saving and repaying loans on time.
-        Use MFT to pay at partner clinics (10% discount) or swap for BOT on the Botchain DEX.
+        MFT is an on-chain score of your saving and repayment history. It is recorded in the MedFi contract, not a transferable token, so it can't be sent, swapped or spent yet.
       </p>
-      <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
-        <button class="btn btn-sm" onclick="redeemMFT()">Redeem MFT at Provider</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('MFT swap coming in v2!')">Swap MFT → BOT</button>
-      </div>
     </div>
   </div>
 
 </div><!-- end .container -->
 
 <footer>
-  MedFi is deployed on Botchain · Contract: 0xMedFi… · Non-custodial · Open source<br/>
-  MFT is a utility token — not financial advice
+  MedFi on BOT Chain mainnet · Contract: <a id="contractLink" target="_blank" rel="noopener" style="color:inherit"></a><br/>
+  MFT points are not a token and not financial advice
 </footer>
 
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
 <script>
-  // ── Navigation
+  // ── Config (BOT Chain mainnet) ─────────────────────────────────────────────
+  const CONTRACT_ADDRESS = '0x97DA472E8AFf124AAc2029BCf5e8FDf9CD2D6Dfb';
+  const CHAIN_ID = 677;
+  const EXPLORER = 'https://scan.botchain.ai';
+  const BOT_CHAIN = {
+    chainId: '0x2a5', chainName: 'BOT Chain Mainnet',
+    nativeCurrency: { name: 'BOT', symbol: 'BOT', decimals: 18 },
+    rpcUrls: ['https://rpc.botchain.ai'], blockExplorerUrls: [EXPLORER]
+  };
+  const ABI = [
+    'function owner() view returns (address)',
+    'function loanCounter() view returns (uint256)',
+    'function totalPoolBalance() view returns (uint256)',
+    'function members(address) view returns (address wallet, string name, uint256 totalSaved, uint256 savingsStreak, uint256 lastDepositWeek, uint256 mftBalance, uint256 activeLoans, bool registered)',
+    'function providers(address) view returns (address wallet, string name, string category, bool active)',
+    'function getMemberLoans(address _m) view returns (uint256[])',
+    'function getProviders() view returns (address[])',
+    'function getLoan(uint256 _id) view returns ((uint256 id, address borrower, address guarantor, uint256 amount, uint256 guarantorStake, uint256 issuedAt, uint256 dueDate, uint256 amountRepaid, bool repaid, bool defaulted))',
+    'function maxLoanFor(address _m) view returns (uint256)',
+    'function register(string _name)',
+    'function deposit() payable',
+    'function withdrawSavings(uint256 _amount)',
+    'function requestLoan(uint256 _amount, address _guarantor, uint256 _durationDays) returns (uint256)',
+    'function stakeAsGuarantor(uint256 _loanId) payable',
+    'function repayLoan(uint256 _loanId) payable',
+    'function markDefault(uint256 _loanId)',
+    'function payProvider(address _provider) payable',
+    'function addProvider(address _wallet, string _name, string _category)',
+    'event Registered(address indexed member, string name)',
+    'event Deposited(address indexed member, uint256 amount, uint256 mftEarned)',
+    'event LoanRequested(uint256 indexed loanId, address indexed borrower, address indexed guarantor, uint256 amount)',
+    'event GuarantorStaked(uint256 indexed loanId, address indexed guarantor, uint256 stake)',
+    'event LoanRepaid(uint256 indexed loanId, address indexed borrower, uint256 amount)',
+    'event LoanDefaulted(uint256 indexed loanId, address indexed borrower)',
+    'event PaymentToProvider(address indexed member, address indexed provider, uint256 amount)'
+  ];
+  const FEE_BPS = 200n;
+  const LOAN_DAYS = 30; // the deployed contract always uses 30 days
+
+  const readProvider = new ethers.JsonRpcProvider(BOT_CHAIN.rpcUrls[0], CHAIN_ID, { staticNetwork: ethers.Network.from(CHAIN_ID) });
+  const medfi = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+
+  let account = null, me = null, isOwner = false, allLoans = [], providerInfo = [], txBusy = false;
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
   function show(id, btn) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    (btn || document.querySelector(`nav button[onclick*="'${id}'"]`))?.classList.add('active');
+  }
+  const fmt = (wei, dp = 4) => {
+    const [i, f = ''] = ethers.formatEther(wei).split('.');
+    const d = f.slice(0, dp).replace(/0+$/, '');
+    return BigInt(i).toLocaleString('en-US') + (d ? '.' + d : '');
+  };
+  const short = a => a ? a.slice(0, 6) + '…' + a.slice(-4) : '';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const date = ts => new Date(Number(ts) * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const errText = e => (e && (e.shortMessage || e.reason || e.info?.error?.message || e.data?.message || e.message)) || String(e);
+  function cleanRevert(e) {
+    const m = errText(e), r = m.match(/reverted(?: with reason string)?:?\s*"?([^"\n]+)"?/i);
+    return r ? r[1].trim() : m;
+  }
+  function withTimeout(p, ms, msg) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]); }
+  let toastTimer;
+  function toast(msg, type = '') {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.className = 'show ' + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = '', type === 'err' ? 7000 : 3500);
+  }
+  async function busy(btnId, fn) {
+    const btn = document.getElementById(btnId);
+    if (btn) btn.disabled = true;
+    try { await fn(); } catch (e) { toast(errText(e), 'err'); }
+    finally { if (btn) btn.disabled = false; }
+  }
+  function readAmount(id) {
+    const v = document.getElementById(id).value.trim();
+    if (!v) throw new Error('Enter an amount');
+    const wei = ethers.parseEther(v);
+    if (wei <= 0n) throw new Error('Amount must be greater than 0');
+    return wei;
   }
 
-  // ── Savings streak dots
-  (function buildStreak() {
-    const streak = 5, total = 8;
-    const container = document.getElementById('streakDots');
-    if (!container) return;
-    for (let i = 0; i < total; i++) {
-      const d = document.createElement('div');
-      d.className = 'week-dot' + (i < streak ? ' done' : '');
-      d.textContent = 'W' + (i + 1);
-      container.appendChild(d);
-    }
-  })();
+  // ── Wallet ─────────────────────────────────────────────────────────────────
+  async function connectWallet(silent = false) {
+    if (!window.ethereum) { if (!silent) toast('No wallet detected. Install MetaMask or a compatible wallet.', 'err'); return; }
+    const btn = document.getElementById('walletBtn');
+    try {
+      if (!silent) btn.disabled = true;
+      const accounts = await withTimeout(
+        window.ethereum.request({ method: silent ? 'eth_accounts' : 'eth_requestAccounts' }),
+        silent ? 5000 : 60000, 'Wallet did not respond. Open MetaMask from the toolbar and clear pending requests.');
+      if (!accounts || !accounts.length) return;
+      account = ethers.getAddress(accounts[0]);
+      btn.textContent = short(account);
+      setText('pAddr', account);
+      if (window.ethereum.on) window.ethereum.on('accountsChanged', () => location.reload());
+      await refreshAll();
+      if (!silent) {
+        toast('Wallet connected ✓', 'ok');
+        withTimeout(ensureChain(), 60000, 'switch').catch(() => toast('Switch MetaMask to BOT Chain (677) before sending transactions', 'err'));
+      }
+    } catch (e) { if (!silent) toast(errText(e), 'err'); }
+    finally { btn.disabled = false; }
+  }
 
-  // ── MFT preview on deposit input
+  async function ensureChain() {
+    const id = parseInt(await window.ethereum.request({ method: 'eth_chainId' }), 16);
+    if (id === CHAIN_ID) return;
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BOT_CHAIN.chainId }] });
+    } catch (e) {
+      if (e.code === 4902 || e.code === -32603 || /unrecognized|not been added/i.test(e.message || '')) {
+        await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [BOT_CHAIN] });
+      } else throw e;
+    }
+  }
+
+  // Estimate on our own RPC (reverts show the contract's message), then hand the wallet a complete tx
+  async function sendTx(fn, args = [], value = 0n) {
+    if (!account) throw new Error('Connect your wallet first');
+    if (txBusy) throw new Error('Another transaction is still pending');
+    txBusy = true;
+    try {
+      await withTimeout(ensureChain(), 60000, 'Approve the switch to BOT Chain in MetaMask');
+      const data = medfi.interface.encodeFunctionData(fn, args);
+      let gas;
+      try { gas = await readProvider.estimateGas({ from: account, to: CONTRACT_ADDRESS, data, value }); }
+      catch (e) { throw new Error(cleanRevert(e)); }
+      toast('Confirm in your wallet…');
+      const hash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: account, to: CONTRACT_ADDRESS, data, value: ethers.toQuantity(value), gas: ethers.toQuantity(gas * 12n / 10n) }]
+      });
+      toast('Sent. Waiting for confirmation…');
+      const r = await readProvider.waitForTransaction(hash, 1, 180000);
+      if (!r) throw new Error('Not confirmed within 3 minutes. Check ' + EXPLORER + '/tx/' + hash);
+      if (r.status !== 1) throw new Error('Transaction reverted');
+      return hash;
+    } finally { txBusy = false; }
+  }
+
+  // ── Loading ────────────────────────────────────────────────────────────────
+  async function refreshAll() {
+    await Promise.all([loadPool(), loadProviders()]);
+    await Promise.all([loadMe(), loadActivity()]);
+    renderLoans();
+  }
+
+  async function loadPool() {
+    try {
+      const [pool, count, owner] = await Promise.all([medfi.totalPoolBalance(), medfi.loanCounter(), medfi.owner()]);
+      isOwner = !!account && owner.toLowerCase() === account.toLowerCase();
+      setText('stPool', fmt(pool, 2) + ' BOT');
+      setText('stLoans', Number(count));
+      const ids = Array.from({ length: Number(count) }, (_, i) => i + 1);
+      allLoans = await Promise.all(ids.map(id => medfi.getLoan(id)));
+      const active = allLoans.filter(l => l.issuedAt > 0n && !l.repaid && !l.defaulted).length;
+      const repaid = allLoans.filter(l => l.repaid).length, defaulted = allLoans.filter(l => l.defaulted).length;
+      setText('stActive', active);
+      setText('stRepay', (repaid + defaulted) ? Math.round(repaid * 100 / (repaid + defaulted)) + '%' : '–');
+    } catch (e) {
+      toast('Could not reach BOT Chain: ' + errText(e), 'err');
+    }
+  }
+
+  async function loadProviders() {
+    const grid = document.getElementById('providerGrid'), sel = document.getElementById('pvSelect');
+    try {
+      const addrs = Array.from(await medfi.getProviders());
+      const unique = [...new Set(addrs.map(a => a.toLowerCase()))];
+      providerInfo = (await Promise.all(unique.map(a => medfi.providers(a)))).filter(p => p.active);
+      setText('stProviders', providerInfo.length);
+      const icon = c => ({ Clinic: '🏥', Pharmacy: '💊', Hospital: '🏨' }[c] || '🏥');
+      grid.innerHTML = providerInfo.length ? providerInfo.map(p => `
+        <div class="provider-card">
+          <div class="icon">${icon(p.category)}</div>
+          <h4>${esc(p.name)}</h4>
+          <p>${esc(p.category)}</p>
+          <p style="color:var(--teal);font-size:0.78rem;margin-bottom:0.6rem"><a href="${EXPLORER}/address/${p.wallet}" target="_blank" rel="noopener" style="color:inherit">${short(p.wallet)}</a></p>
+          <button class="btn btn-sm" onclick="payProvider('${p.wallet}')">Pay Directly</button>
+        </div>`).join('') : '<div class="empty">No verified providers yet.</div>';
+      sel.innerHTML = '<option value="">Select a verified provider</option>' +
+        providerInfo.map(p => `<option value="${p.wallet}">${esc(p.name)} (${esc(p.category)})</option>`).join('');
+    } catch (e) { grid.innerHTML = `<div class="empty">Could not load providers: ${esc(errText(e))}</div>`; }
+    document.getElementById('ownerProvCard').style.display = isOwner ? 'block' : 'none';
+  }
+
+  async function loadMe() {
+    if (!account) return;
+    try {
+      me = await medfi.members(account);
+      const reg = me.registered;
+      document.getElementById('regForm').style.display = reg ? 'none' : 'block';
+      const badge = document.getElementById('pBadge');
+      badge.textContent = reg ? 'Registered' : 'Not registered';
+      badge.className = 'badge ' + (reg ? 'b-active' : 'b-pending');
+      setText('welcomeBox', reg ? `👋 Welcome back, ${me.name}. Save regularly to keep your streak and raise your loan limit.`
+                                : '👋 Welcome to MedFi. Register on the Profile tab to start saving.');
+      const saved = fmt(me.totalSaved) + ' BOT', mft = Number(me.mftBalance) + ' MFT';
+      const streak = Number(me.savingsStreak);
+      // streak only counts if the last deposit was this week or last week
+      const week = Math.floor(Date.now() / 1000 / (7 * 86400));
+      const liveStreak = Number(me.lastDepositWeek) >= week - 1 ? streak : 0;
+      setText('savAmt', saved); setText('pSaved', saved);
+      setText('mftBal', mft); setText('pMft', mft);
+      setText('streakVal', liveStreak + (liveStreak === 1 ? ' week' : ' weeks')); setText('pStreak', liveStreak);
+      setText('maxLoan', fmt(me.totalSaved * 3n) + ' BOT');
+      setText('pLoans', Number((await medfi.getMemberLoans(account)).length));
+      const dots = document.getElementById('streakDots'); dots.innerHTML = '';
+      for (let i = 0; i < 8; i++) {
+        const d = document.createElement('div');
+        d.className = 'week-dot' + (i < Math.min(liveStreak, 8) ? ' done' : '');
+        d.textContent = 'W' + (i + 1);
+        dots.appendChild(d);
+      }
+      updateMFTPreview();
+    } catch {}
+  }
+
+  function loanStatus(l) {
+    if (l.repaid) return ['Repaid', 'b-repaid'];
+    if (l.defaulted) return ['Defaulted', 'b-default'];
+    if (l.issuedAt === 0n) return ['Waiting for guarantor', 'b-pending'];
+    if (Date.now() / 1000 > Number(l.dueDate)) return ['Overdue', 'b-default'];
+    return ['Active', 'b-active'];
+  }
+  const owed = l => l.amount + (l.amount * FEE_BPS) / 10000n;
+
+  function loanCard(l, actions) {
+    const [label, cls] = loanStatus(l);
+    let progress = '';
+    if (l.issuedAt > 0n && !l.repaid && !l.defaulted) {
+      const total = Number(l.dueDate - l.issuedAt), el = Math.min(Math.max(Date.now() / 1000 - Number(l.issuedAt), 0), total);
+      const pct = Math.round(el * 100 / total);
+      progress = `<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <p style="font-size:0.72rem;color:var(--gray)">${Math.floor(el / 86400)} of ${Math.round(total / 86400)} days elapsed</p>`;
+    }
+    return `<div class="loan-card">
+      <span class="badge ${cls}">${label}</span>
+      <h4 style="margin-top:0.4rem">Loan #${l.id} — ${fmt(l.amount)} BOT</h4>
+      <p>👤 Borrower: ${short(l.borrower)} &nbsp;|&nbsp; 🤝 Guarantor: ${short(l.guarantor)} (stake ${fmt(l.guarantorStake)} BOT)</p>
+      <p>${l.issuedAt > 0n ? `📅 Due: ${date(l.dueDate)} &nbsp;|&nbsp; ` : ''}Total to repay: ${fmt(owed(l))} BOT (2% fee)</p>
+      ${progress}
+      ${actions ? `<div class="loan-actions">${actions}</div>` : ''}
+    </div>`;
+  }
+
+  function renderLoans() {
+    const meL = account ? account.toLowerCase() : '';
+    const mine = allLoans.filter(l => l.borrower.toLowerCase() === meL).reverse();
+    const asGuarantor = allLoans.filter(l => l.guarantor.toLowerCase() === meL && l.issuedAt === 0n);
+    if (account) {
+      document.getElementById('myLoans').innerHTML = mine.length ? mine.map(l => {
+        const open = l.issuedAt > 0n && !l.repaid && !l.defaulted;
+        return loanCard(l, open ? `<button class="btn btn-teal btn-sm" id="repay-${l.id}" onclick="repayLoan(${l.id})">Repay ${fmt(owed(l))} BOT</button>` : '');
+      }).join('') : '<div class="empty">No loans yet.</div>';
+      document.getElementById('guarantorList').innerHTML = asGuarantor.length ? asGuarantor.map(l =>
+        loanCard(l, `<button class="btn btn-teal btn-sm" id="stake-${l.id}" onclick="stakeAsGuarantor(${l.id})">Stake ${fmt(l.guarantorStake)} BOT &amp; activate</button>`)
+      ).join('') : '<div class="empty">No one has nominated you as a guarantor.</div>';
+    }
+    document.getElementById('ownerLoansCard').style.display = isOwner ? 'block' : 'none';
+    if (isOwner) {
+      const overdue = allLoans.filter(l => l.issuedAt > 0n && !l.repaid && !l.defaulted && Date.now() / 1000 > Number(l.dueDate));
+      document.getElementById('overdueList').innerHTML = overdue.length ? overdue.map(l =>
+        loanCard(l, `<button class="btn btn-red btn-sm" id="default-${l.id}" onclick="markDefault(${l.id})">Mark as defaulted</button>`)
+      ).join('') : '<div class="empty">No overdue loans.</div>';
+    }
+  }
+
+  async function loadActivity() {
+    const box = document.getElementById('activity');
+    try {
+      const latest = await readProvider.getBlockNumber();
+      const q = async name => {
+        try { return await medfi.queryFilter(name, 0, latest); }
+        catch { return await medfi.queryFilter(name, Math.max(0, latest - 50000), latest); }
+      };
+      const sets = await Promise.all(['Deposited', 'GuarantorStaked', 'LoanRepaid', 'PaymentToProvider', 'Registered'].map(q));
+      const logs = sets.flat().sort((a, b) => b.blockNumber - a.blockNumber || b.index - a.index).slice(0, 6);
+      if (!logs.length) { box.innerHTML = '<div class="empty">No activity yet.</div>'; return; }
+      const provName = a => (providerInfo.find(p => p.wallet.toLowerCase() === a.toLowerCase()) || {}).name || short(a);
+      box.innerHTML = logs.map(l => {
+        const a = l.args, link = `<a href="${EXPLORER}/tx/${l.transactionHash}" target="_blank" rel="noopener" style="color:var(--gray)">view ↗</a>`;
+        let left = '', right = link;
+        if (l.eventName === 'Deposited') { left = `💰 ${short(a.member)} deposited ${fmt(a.amount)} BOT`; right = `<span style="color:var(--teal);font-weight:600">+${a.mftEarned} MFT</span>`; }
+        else if (l.eventName === 'GuarantorStaked') left = `🤝 Loan #${a.loanId} guaranteed by ${short(a.guarantor)} (${fmt(a.stake)} BOT locked)`;
+        else if (l.eventName === 'LoanRepaid') left = `💊 Loan #${a.loanId} repaid by ${short(a.borrower)}`;
+        else if (l.eventName === 'PaymentToProvider') left = `🏥 Payment to ${esc(provName(a.provider))} — ${fmt(a.amount)} BOT`;
+        else if (l.eventName === 'Registered') left = `👤 ${esc(a.name)} joined MedFi`;
+        return `<div class="act-row"><span>${left}</span><span>${right}</span></div>`;
+      }).join('');
+    } catch (e) { box.innerHTML = `<div class="empty">Could not load activity: ${esc(errText(e))}</div>`; }
+  }
+
+  // ── Savings ────────────────────────────────────────────────────────────────
   function updateMFTPreview() {
     const v = parseFloat(document.getElementById('depAmt').value) || 0;
-    const mft = v > 0 ? '10 MFT' + (true ? ' + 5 streak bonus = 15 MFT' : '') : '';
-    document.getElementById('mftPreview').textContent = v > 0 ? '🎖 You will earn: ' + mft : '';
+    if (!v) { setText('mftPreview', ''); return; }
+    // Mirrors the contract: streak rises if last deposit was last week, bonus when streak > 4
+    let streak = me ? Number(me.savingsStreak) : 0;
+    const week = Math.floor(Date.now() / 1000 / (7 * 86400)), last = me ? Number(me.lastDepositWeek) : 0;
+    if (last === 0 || week === last + 1) streak += 1; else if (week > last + 1) streak = 1;
+    setText('mftPreview', '🎖 You will earn: ' + (streak > 4 ? '10 MFT + 5 streak bonus = 15 MFT' : '10 MFT'));
   }
 
-  // ── Loan calculator
+  function deposit() {
+    busy('depBtn', async () => {
+      if (me && !me.registered) throw new Error('Register on the Profile tab first');
+      await sendTx('deposit', [], readAmount('depAmt'));
+      toast('Deposit confirmed ✓', 'ok');
+      document.getElementById('depAmt').value = ''; setText('mftPreview', '');
+      await refreshAll();
+    });
+  }
+
+  function withdraw() {
+    busy('wdBtn', async () => {
+      await sendTx('withdrawSavings', [readAmount('wdAmt')]);
+      toast('Withdrawn ✓', 'ok');
+      document.getElementById('wdAmt').value = '';
+      await refreshAll();
+    });
+  }
+
+  // ── Loans ──────────────────────────────────────────────────────────────────
   function calcLoan() {
     const amt = parseFloat(document.getElementById('lAmt').value) || 0;
-    if (!amt) { document.getElementById('loanCalc').textContent = ''; return; }
-    const fee = (amt * 0.02).toFixed(4);
-    const total = (amt + parseFloat(fee)).toFixed(4);
-    const gStake = (amt / 2).toFixed(4);
-    document.getElementById('loanCalc').textContent =
-      `Total to repay: ${total} BOT (${fee} BOT fee)  ·  Guarantor must stake: ${gStake} BOT`;
+    if (!amt) { setText('loanCalc', ''); return; }
+    setText('loanCalc', `Total to repay: ${(amt * 1.02).toFixed(4)} BOT (${(amt * 0.02).toFixed(4)} BOT fee) · Guarantor must stake: ${(amt / 2).toFixed(4)} BOT`);
   }
 
-  // ── Actions (simulated — wire to Botchain in production)
-  function deposit()       { const a = document.getElementById('depAmt').value; if(!a){alert('Enter amount');return;} alert(`✅ Depositing ${a} BOT to MedFi pool on Botchain...\ncalling deposit() on MedFi contract.`); }
-  function withdraw()      { const a = document.getElementById('wdAmt').value;  if(!a){alert('Enter amount');return;} alert(`📤 Withdrawing ${a} BOT from MedFi...`); }
-  function requestLoan()   { const a = document.getElementById('lAmt').value;   if(!a){alert('Enter amount');return;} alert(`🏥 Loan request for ${a} BOT submitted to Botchain!\nYour guarantor will be notified to stake.`); }
-  function stakeAsGuarantor() { const id = document.getElementById('gLoanId').value; alert(`🤝 Staking as guarantor for Loan #${id} on Botchain...`); }
-  function repayLoan(id)   { alert(`💊 Repaying Loan #${id} on Botchain...\ncalling repayLoan(${id}).`); }
-  function register()      { alert('📝 Registering on MedFi (Botchain)...\ncalling register() on contract.'); }
-  function redeemMFT()     { alert('🎖 Redeeming MFT at partner provider...'); }
-  function payProvider(n)  { document.getElementById('pvName').value = n; document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById('providers').classList.add('active'); }
-  function directPay()     { const n=document.getElementById('pvName').value; const a=document.getElementById('pvAmt').value; if(!n||!a){alert('Fill provider and amount');return;} alert(`💳 Paying ${a} BOT to ${n} via MedFi on Botchain!`); }
+  function requestLoan() {
+    busy('loanBtn', async () => {
+      const amt = readAmount('lAmt');
+      const g = document.getElementById('lGuarantor').value.trim();
+      if (!ethers.isAddress(g)) throw new Error('Enter a valid guarantor address');
+      if (g.toLowerCase() === account?.toLowerCase()) throw new Error('You cannot be your own guarantor');
+      await sendTx('requestLoan', [amt, g, LOAN_DAYS]);
+      toast('Loan requested ✓ Ask your guarantor to stake on the Loans tab.', 'ok');
+      document.getElementById('lAmt').value = ''; document.getElementById('lGuarantor').value = ''; setText('loanCalc', '');
+      await refreshAll();
+    });
+  }
+
+  function stakeAsGuarantor(id) {
+    const l = allLoans.find(x => Number(x.id) === id);
+    if (!confirm(`Stake ${fmt(l.guarantorStake)} BOT for loan #${id}? You lose this stake if ${short(l.borrower)} defaults.`)) return;
+    busy('stake-' + id, async () => {
+      await sendTx('stakeAsGuarantor', [id], l.guarantorStake);
+      toast('Loan activated and disbursed ✓', 'ok');
+      await refreshAll();
+    });
+  }
+
+  function repayLoan(id) {
+    const l = allLoans.find(x => Number(x.id) === id);
+    busy('repay-' + id, async () => {
+      await sendTx('repayLoan', [id], owed(l));
+      toast('Loan repaid ✓ Your guarantor got their stake back.', 'ok');
+      await refreshAll();
+    });
+  }
+
+  function markDefault(id) {
+    if (!confirm(`Mark loan #${id} as defaulted? The guarantor's stake stays in the pool.`)) return;
+    busy('default-' + id, async () => {
+      await sendTx('markDefault', [id]);
+      toast('Loan marked as defaulted', 'ok');
+      await refreshAll();
+    });
+  }
+
+  // ── Providers ──────────────────────────────────────────────────────────────
+  function payProvider(addr) {
+    document.getElementById('pvSelect').value = addr;
+    document.getElementById('pvAmt').focus();
+  }
+
+  function directPay() {
+    busy('payBtn', async () => {
+      const addr = document.getElementById('pvSelect').value;
+      if (!addr) throw new Error('Select a provider');
+      const amt = readAmount('pvAmt');
+      const p = providerInfo.find(x => x.wallet.toLowerCase() === addr.toLowerCase());
+      if (!confirm(`Pay ${fmt(amt)} BOT to ${p ? p.name : short(addr)}?`)) return;
+      await sendTx('payProvider', [addr], amt);
+      toast('Payment sent ✓', 'ok');
+      document.getElementById('pvAmt').value = '';
+      await loadActivity();
+    });
+  }
+
+  function addProvider() {
+    busy('apBtn', async () => {
+      const w = document.getElementById('apWallet').value.trim();
+      const n = document.getElementById('apName').value.trim();
+      if (!ethers.isAddress(w)) throw new Error('Enter a valid provider wallet');
+      if (!n) throw new Error('Enter the provider name');
+      await sendTx('addProvider', [w, n, document.getElementById('apCat').value]);
+      toast('Provider added ✓', 'ok');
+      document.getElementById('apWallet').value = ''; document.getElementById('apName').value = '';
+      await loadProviders();
+    });
+  }
+
+  // ── Profile ────────────────────────────────────────────────────────────────
+  function register() {
+    busy('regBtn', async () => {
+      const n = document.getElementById('rName').value.trim();
+      if (!n) throw new Error('Enter your name');
+      await sendTx('register', [n]);
+      toast('Registered ✓', 'ok');
+      await refreshAll();
+    });
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  const link = document.getElementById('contractLink');
+  link.href = `${EXPLORER}/address/${CONTRACT_ADDRESS}`;
+  link.textContent = short(CONTRACT_ADDRESS);
+
+  refreshAll();
+  if (window.ethereum) connectWallet(true);
 </script>
 </body>
 </html>
